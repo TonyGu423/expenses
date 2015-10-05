@@ -14,8 +14,8 @@ Schemas.Category = new SimpleSchema({
 });
 
 Schemas.Expense = new SimpleSchema({
-  description: {type: String},
-  amount: {type: Number},
+  description: {type: String, min: 2},
+  amount: {type: Number, decimal: true},
   createdAt: {type: Date},
   categories: {type: Schemas.Categories},
   owner: {type: String}
