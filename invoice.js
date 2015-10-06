@@ -20,6 +20,7 @@ if (Meteor.isClient) {
     }
   });
 
+
   Template.invoiceForm.events({
     // Expenses.insert({description: 'test', amount: 1, createdAt: moment().subtract(1, 'months')._d, categories: Categories.findOne()._id, owner: Meteor.userId()});
 
@@ -27,19 +28,33 @@ if (Meteor.isClient) {
       // Prevent default browser form submit
       event.preventDefault();
 
-
+      //Function to capitalise first character for strings
+      function capitalizeFirstLetter(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+      }
 
       // Get value from form element
       var description = event.target.inputDescription.value;
       var amount = event.target.inputAmount.value;
       var categories = event.target.inputCategory.value;
 
-      Meteor.call("addExpense", description, amount, categories);
+      Meteor.call("addExpense", description, amount, categories, function (error, result) {
+        if (error) {
+          $('.form-group').removeClass('has-error');
+          Expenses.simpleSchema().namedContext().invalidKeys().forEach(function(e) {
+            $("#input" + capitalizeFirstLetter(e.name)).closest('.form-group').addClass('has-error');
+            Alerts.error(capitalizeFirstLetter(e.name) + ' is ' + e.type);
+          });
+        } else {
+          $('.form-group').removeClass('has-error');
+          // Clear form
+          event.target.inputDescription.value = "";
+          event.target.inputAmount.value = "";
+          event.target.inputCategory.value = "";
+          console.log('SUCESS!')
+        }
+      });
 
-      // Clear form
-      event.target.inputDescription.value = "";
-      event.target.inputAmount.value = "";
-      event.target.inputCategory.value = "";
     }
   });
 
@@ -64,9 +79,10 @@ if (Meteor.isClient) {
         }
       }
     },
-    displayOwner: function(user) {
-      if (user) {
-        return 'by ' + Meteor.users.findOne(user).username;
+    displayOwner: function(owner) {
+      var user = Meteor.users.findOne(owner);
+      if (user && user.username) {
+        return user.username;
       }
     },
     isOwner: function () {
@@ -82,7 +98,6 @@ if (Meteor.isClient) {
       Meteor.call("deleteExpense", this._id);
     }
   });
-
 }
 
 if (Meteor.isServer) {
@@ -116,11 +131,6 @@ Meteor.methods({
       throw new Meteor.Error("not-authorized");
     }
 
-    //Function to capitalise first character for strings
-    function capitalizeFirstLetter(string) {
-      return string.charAt(0).toUpperCase() + string.slice(1);
-    }
-
     // Insert a expenses into the collection
     Expenses.insert({
       description: description,
@@ -128,15 +138,6 @@ Meteor.methods({
       createdAt: moment()._d,
       categories: categories,
       owner: Meteor.userId()
-    }, function(error, result){
-      if (result) {
-        // $('.form-group').removeClass('has-error');
-      } else {
-        error.invalidKeys.forEach(function(e) {
-          // $("#input" + capitalizeFirstLetter(e.name)).closest('.form-group').addClass('has-error');
-          // Alerts.error(capitalizeFirstLetter(e.name) + ' is ' + e.type);
-        });
-      }
     });
   },
   deleteExpense: function (expenseId) {
