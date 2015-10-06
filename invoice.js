@@ -102,6 +102,7 @@ if (Meteor.isClient) {
 
 if (Meteor.isServer) {
   Meteor.startup(function () {
+    // create initial categories
     if (Categories.find().count() == 0) {
         Categories.insert({name:'Sonstige'}, {validate: false});
         Categories.insert({name:'Mittagessen'}, {validate: false});
@@ -109,6 +110,14 @@ if (Meteor.isServer) {
         Categories.insert({name:'Einkauf'}, {validate: false});
         Categories.insert({name:'Markt'}, {validate: false});
       }
+
+    //create initial user
+    if ( Meteor.users.find().count() == 0 ) {
+      Accounts.createUser({
+        username: 'michi',
+        password: 'password'
+      });
+    }
   });
 
   Meteor.publish("allExpenses", function () {
