@@ -10,10 +10,13 @@ if (Meteor.isClient) {
     // autoHide: false
   });
 
+  Meteor.subscribe("allExpenses");
+  Meteor.subscribe("allCategories");
+  Meteor.subscribe("allUsers");
+
   Template.invoiceForm.helpers({
     categories: function() {
-      var categories = Categories.find({});
-      return categories;
+      return Categories.find({});
     }
   });
 
@@ -24,39 +27,19 @@ if (Meteor.isClient) {
       // Prevent default browser form submit
       event.preventDefault();
 
-      //Function to capitalise first character for strings
-      function capitalizeFirstLetter(string) {
-          return string.charAt(0).toUpperCase() + string.slice(1);
-      }
+
 
       // Get value from form element
       var description = event.target.inputDescription.value;
       var amount = event.target.inputAmount.value;
-      var createdAt = moment()._d;
       var categories = event.target.inputCategory.value;
-      var owner = Meteor.userId();
 
-      // Insert a expenses into the collection
-      Expenses.insert({
-        description: description,
-        amount: amount,
-        createdAt: createdAt,
-        categories: categories,
-        owner: owner
-      }, function(error, result){
-        if(result) {
-          // Clear form
-          event.target.inputDescription.value = "";
-          event.target.inputAmount.value = "";
-          event.target.inputCategory.value = "";
-          $('.form-group').removeClass('has-error');
-        } else {
-          error.invalidKeys.forEach(function(e) {
-            $("#input" + capitalizeFirstLetter(e.name)).closest('.form-group').addClass('has-error');
-            Alerts.error(capitalizeFirstLetter(e.name) + ' is ' + e.type);
-          });
-        }
-      });
+      Meteor.call("addExpense", description, amount, categories);
+
+      // Clear form
+      event.target.inputDescription.value = "";
+      event.target.inputAmount.value = "";
+      event.target.inputCategory.value = "";
     }
   });
 
@@ -73,8 +56,8 @@ if (Meteor.isClient) {
      return sum;
     },
     dateBeautifier: function(date) {
-      if(date) {
-        if(moment(date).isSame(moment(), 'day')) {
+      if (date) {
+        if (moment(date).isSame(moment(), 'day')) {
           return moment(date).fromNow();
         } else {
           return moment(date).format('DD.MM.YYYY');
@@ -82,7 +65,7 @@ if (Meteor.isClient) {
       }
     },
     displayOwner: function(user) {
-      if(user) {
+      if (user) {
         return 'by ' + Meteor.users.findOne(user).username;
       }
     },
@@ -112,14 +95,56 @@ if (Meteor.isServer) {
         Categories.insert({name:'Markt'}, {validate: false});
       }
   });
+
+  Meteor.publish("allExpenses", function () {
+    return Expenses.find();
+  });
+
+  Meteor.publish("allCategories", function () {
+    return Categories.find();
+  });
+
+  Meteor.publish('allUsers', function() {
+    return Meteor.users.find();
+  });
 }
 
 Meteor.methods({
+  addExpense: function (description, amount, categories) {
+    if (! Meteor.userId()) {
+      Alerts.error('Not authorized');
+      throw new Meteor.Error("not-authorized");
+    }
+
+    //Function to capitalise first character for strings
+    function capitalizeFirstLetter(string) {
+      return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+
+    // Insert a expenses into the collection
+    Expenses.insert({
+      description: description,
+      amount: amount,
+      createdAt: moment()._d,
+      categories: categories,
+      owner: Meteor.userId()
+    }, function(error, result){
+      if (result) {
+        // $('.form-group').removeClass('has-error');
+      } else {
+        error.invalidKeys.forEach(function(e) {
+          // $("#input" + capitalizeFirstLetter(e.name)).closest('.form-group').addClass('has-error');
+          // Alerts.error(capitalizeFirstLetter(e.name) + ' is ' + e.type);
+        });
+      }
+    });
+  },
   deleteExpense: function (expenseId) {
     var expense = Expenses.findOne(expenseId);
     if (expense.owner !== Meteor.userId()) {
       // If the task is private, make sure only the owner can delete it
       Alerts.error('Not authorized');
+      throw new Meteor.Error("not-authorized");
     }
     Expenses.remove(expenseId);
   }
