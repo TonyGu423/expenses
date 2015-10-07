@@ -4,15 +4,17 @@ if (Meteor.isClient) {
     passwordSignupFields: "USERNAME_ONLY",
   });
 
-  Alerts.config({
-    position: 'top-center',
-    alertWidth: '75%',
-    // autoHide: false
-  });
-
   Meteor.subscribe("allExpenses");
   Meteor.subscribe("allCategories");
   Meteor.subscribe("allUsers");
+
+  Template.registerHelper("categoriesOptions", function() {
+    array = []
+    Categories.find().fetch().forEach(function(c) {
+        array.push({label: c.name, value: c._id});
+      });
+    return array;
+  });
 
   Template.invoiceForm.helpers({
     categories: function() {
@@ -20,11 +22,10 @@ if (Meteor.isClient) {
     }
   });
 
-
   Template.invoiceForm.events({
     // Expenses.insert({description: 'test', amount: 1, createdAt: moment().subtract(1, 'months')._d, categories: Categories.findOne()._id, owner: Meteor.userId()});
 
-    "submit #expensesInput": function(event, template){
+    "submit #insertExpenseForm": function(event, template){
       // Prevent default browser form submit
       event.preventDefault();
 
@@ -38,20 +39,20 @@ if (Meteor.isClient) {
       var amount = event.target.inputAmount.value;
       var categories = event.target.inputCategory.value;
 
+      console.log(description + ' ' + amount + ' ' + categories);
+
       Meteor.call("addExpense", description, amount, categories, function (error, result) {
         if (error) {
-          $('.form-group').removeClass('has-error');
-          Expenses.simpleSchema().namedContext().invalidKeys().forEach(function(e) {
-            $("#input" + capitalizeFirstLetter(e.name)).closest('.form-group').addClass('has-error');
-            Alerts.error(capitalizeFirstLetter(e.name) + ' is ' + e.type);
-          });
+          // $('.form-group').removeClass('has-error');
+          // Expenses.simpleSchema().namedContext('addExpense').invalidKeys().forEach(function(e) {
+          //   $("#input" + capitalizeFirstLetter(e.name)).closest('.form-group').addClass('has-error');
+          // });
         } else {
-          $('.form-group').removeClass('has-error');
+          // $('.form-group').removeClass('has-error');
           // Clear form
           event.target.inputDescription.value = "";
           event.target.inputAmount.value = "";
           event.target.inputCategory.value = "";
-          console.log('SUCESS!')
         }
       });
 
@@ -118,6 +119,7 @@ if (Meteor.isServer) {
         password: 'password'
       });
     }
+
   });
 
   Meteor.publish("allExpenses", function () {
@@ -136,7 +138,6 @@ if (Meteor.isServer) {
 Meteor.methods({
   addExpense: function (description, amount, categories) {
     if (! Meteor.userId()) {
-      Alerts.error('Not authorized');
       throw new Meteor.Error("not-authorized");
     }
 
@@ -153,7 +154,6 @@ Meteor.methods({
     var expense = Expenses.findOne(expenseId);
     if (expense.owner !== Meteor.userId()) {
       // If the task is private, make sure only the owner can delete it
-      Alerts.error('Not authorized');
       throw new Meteor.Error("not-authorized");
     }
     Expenses.remove(expenseId);

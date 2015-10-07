@@ -7,9 +7,9 @@
 <body>
   {{> navBar}}
   <div class="container">
-    {{> bootstrapAlerts}}
     {{#if currentUser}}
-      {{> invoiceForm}}
+      <!-- {{> invoiceForm}} -->
+      {{> insertExpenseForm}}
       {{> invoiceTable}}
     {{else}}
       <div class="alert alert-warning" role="alert">
@@ -22,7 +22,6 @@
 <template name="charts">
   {{> navBar}}
   <div class="container">
-    {{> bootstrapAlerts}}
     CHARTS
   </div>
 </template>
@@ -80,8 +79,30 @@
   </table>
 </template>
 
+<template name="insertExpenseForm">
+  {{#autoForm collection="Expenses" id="insertExpenseForm2" type="insert"}}
+    <fieldset>
+      <legend>Add en expense</legend>
+      {{> afQuickField name='description' placeholder='Description'}}
+      <div class="form-group{{#if afFieldIsInvalid name='amount'}} has-error{{/if}}">
+        <div class="input-group">
+          {{> afFieldInput name='amount'}}
+          <span class="input-group-addon">€</span>
+        </div>
+        {{#if afFieldIsInvalid name='amount'}}
+        <span class="help-block">{{afFieldMessage name='amount'}}</span>
+        {{/if}}
+      </div>
+      {{> afQuickField name='categories' options=categoriesOptions}}
+      {{> afFieldInput name='createdAt' value=moment()._d}}
+      <!-- {{> afFieldInput name='owner' type='hidden' value=Meteor.userId()}} -->
+    </fieldset>
+    <button type="submit" class="btn btn-primary" id="add_expense">Add Expense</button>
+  {{/autoForm}}
+</template>
+
 <template name="invoiceForm">
-  <form class="form-inline" id="expensesInput">
+  <form class="form-inline" id="insertExpenseForm">
     <div class="form-group">
       <label class="sr-only" for="inputDescription">Description</label>
       <input type="text" class="form-control" id="inputDescription" placeholder="Description">

@@ -24,6 +24,15 @@ Schemas.Expense = new SimpleSchema({
 Expenses.attachSchema(Schemas.Expense);
 Categories.attachSchema(Schemas.Category);
 
+// Expenses.allow({
+//   insert: function () {
+//     return true;
+//   },
+//   remove: function () {
+//     return true;
+//   }
+// });
+
 // Disable signup
 Accounts.config({
   // forbidClientAccountCreation: true
