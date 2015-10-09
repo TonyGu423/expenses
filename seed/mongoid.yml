@@ -1,0 +1,6 @@
+development:
+  sessions:
+    default:
+      database: meteor
+      hosts:
+        - localhost:3001

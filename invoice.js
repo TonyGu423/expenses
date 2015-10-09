@@ -16,49 +16,6 @@ if (Meteor.isClient) {
     return array;
   });
 
-  Template.invoiceForm.helpers({
-    categories: function() {
-      return Categories.find({});
-    }
-  });
-
-  Template.invoiceForm.events({
-    // Expenses.insert({description: 'test', amount: 1, createdAt: moment().subtract(1, 'months')._d, categories: Categories.findOne()._id, owner: Meteor.userId()});
-
-    "submit #insertExpenseForm": function(event, template){
-      // Prevent default browser form submit
-      event.preventDefault();
-
-      //Function to capitalise first character for strings
-      function capitalizeFirstLetter(string) {
-        return string.charAt(0).toUpperCase() + string.slice(1);
-      }
-
-      // Get value from form element
-      var description = event.target.inputDescription.value;
-      var amount = event.target.inputAmount.value;
-      var categories = event.target.inputCategory.value;
-
-      console.log(description + ' ' + amount + ' ' + categories);
-
-      Meteor.call("addExpense", description, amount, categories, function (error, result) {
-        if (error) {
-          // $('.form-group').removeClass('has-error');
-          // Expenses.simpleSchema().namedContext('addExpense').invalidKeys().forEach(function(e) {
-          //   $("#input" + capitalizeFirstLetter(e.name)).closest('.form-group').addClass('has-error');
-          // });
-        } else {
-          // $('.form-group').removeClass('has-error');
-          // Clear form
-          event.target.inputDescription.value = "";
-          event.target.inputAmount.value = "";
-          event.target.inputCategory.value = "";
-        }
-      });
-
-    }
-  });
-
   Template.invoiceTable.helpers({
     expenses: function() {
       return Expenses.find({}, {sort: {createdAt: -1}});
@@ -86,7 +43,7 @@ if (Meteor.isClient) {
         return user.username;
       }
     },
-    isOwner: function () {
+    isOwner: function() {
       return this.owner === Meteor.userId();
     },
     parseNumbers: function(data) {
@@ -95,14 +52,14 @@ if (Meteor.isClient) {
   });
 
   Template.invoiceTable.events({
-    "click #deleteExpense": function () {
+    "click #deleteExpense": function() {
       Meteor.call("deleteExpense", this._id);
     }
   });
 }
 
 if (Meteor.isServer) {
-  Meteor.startup(function () {
+  Meteor.startup(function() {
     // create initial categories
     if (Categories.find().count() == 0) {
         Categories.insert({name:'Sonstige'}, {validate: false});
@@ -119,43 +76,29 @@ if (Meteor.isServer) {
         password: 'password'
       });
     }
-
   });
 
-  Meteor.publish("allExpenses", function () {
+  Meteor.publish("allExpenses", function() {
     return Expenses.find();
   });
 
-  Meteor.publish("allCategories", function () {
+  Meteor.publish("allCategories", function() {
     return Categories.find();
   });
 
   Meteor.publish('allUsers', function() {
     return Meteor.users.find();
   });
+
+  Meteor.methods({
+    deleteExpense: function (expenseId) {
+      var expense = Expenses.findOne(expenseId);
+      if (expense.owner !== Meteor.userId()) {
+        // If the task is private, make sure only the owner can delete it
+        throw new Meteor.Error("not-authorized");
+      }
+      Expenses.remove(expenseId);
+    }
+  });
+
 }
-
-Meteor.methods({
-  addExpense: function (description, amount, categories) {
-    if (! Meteor.userId()) {
-      throw new Meteor.Error("not-authorized");
-    }
-
-    // Insert a expenses into the collection
-    Expenses.insert({
-      description: description,
-      amount: amount,
-      createdAt: moment()._d,
-      categories: categories,
-      owner: Meteor.userId()
-    });
-  },
-  deleteExpense: function (expenseId) {
-    var expense = Expenses.findOne(expenseId);
-    if (expense.owner !== Meteor.userId()) {
-      // If the task is private, make sure only the owner can delete it
-      throw new Meteor.Error("not-authorized");
-    }
-    Expenses.remove(expenseId);
-  }
-});

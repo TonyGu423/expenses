@@ -6,34 +6,30 @@ Expenses = new Mongo.Collection("expenses");
 var Schemas = {};
 
 Schemas.Category = new SimpleSchema({
-  name: {
-    type: String,
-    max: 200,
-    denyInsert: true
-  }
+  name: {type: String, max: 200, denyInsert: true}
 });
 
 Schemas.Expense = new SimpleSchema({
   description: {type: String, min: 2},
   amount: {type: Number, decimal: true},
-  createdAt: {type: Date},
+  createdAt: {type: Date, autoValue: function() {if (this.isInsert) { return new Date; }}},
   categories: {type: Schemas.Categories},
-  owner: {type: String}
+  owner: {type: String, autoValue: function() {if (this.isInsert) { return Meteor.userId(); }}}
 });
 
 Expenses.attachSchema(Schemas.Expense);
 Categories.attachSchema(Schemas.Category);
 
-// Expenses.allow({
-//   insert: function () {
-//     return true;
-//   },
-//   remove: function () {
-//     return true;
-//   }
-// });
-
 // Disable signup
 Accounts.config({
   // forbidClientAccountCreation: true
+});
+
+Expenses.allow({
+  insert: function() {
+      return true;
+  }
+  ,remove: function(){
+      return true;
+  }
 });

@@ -2,13 +2,13 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>invoice</title>
+  <link rel="icon" type="image/svg+xml" href="http://www.w3.org/html/logo/downloads/HTML5_Badge.svg">
+  <title>expenses</title>
 </head>
 <body>
   {{> navBar}}
   <div class="container">
     {{#if currentUser}}
-      <!-- {{> invoiceForm}} -->
       {{> insertExpenseForm}}
       {{> invoiceTable}}
     {{else}}
@@ -37,7 +37,7 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="/">Invoice</a>
+        <a class="navbar-brand" href="/">expenses</a>
       </div>
       <div id="navbar" class="navbar-collapse collapse">
         <ul class="nav navbar-nav navbar-right">
@@ -83,10 +83,11 @@
   {{#autoForm collection="Expenses" id="insertExpenseForm2" type="insert"}}
     <fieldset>
       <legend>Add en expense</legend>
-      {{> afQuickField name='description' placeholder='Description'}}
+      {{> afQuickField name='description' placeholder='Description' autofocus=''}}
       <div class="form-group{{#if afFieldIsInvalid name='amount'}} has-error{{/if}}">
+        <label for="amountInput">Amount</label>
         <div class="input-group">
-          {{> afFieldInput name='amount'}}
+          {{> afFieldInput name='amount' id='amountInput' placeholder='Amount'}}
           <span class="input-group-addon">€</span>
         </div>
         {{#if afFieldIsInvalid name='amount'}}
@@ -94,34 +95,7 @@
         {{/if}}
       </div>
       {{> afQuickField name='categories' options=categoriesOptions}}
-      {{> afFieldInput name='createdAt' value=moment()._d}}
-      <!-- {{> afFieldInput name='owner' type='hidden' value=Meteor.userId()}} -->
     </fieldset>
     <button type="submit" class="btn btn-primary" id="add_expense">Add Expense</button>
   {{/autoForm}}
-</template>
-
-<template name="invoiceForm">
-  <form class="form-inline" id="insertExpenseForm">
-    <div class="form-group">
-      <label class="sr-only" for="inputDescription">Description</label>
-      <input type="text" class="form-control" id="inputDescription" placeholder="Description">
-    </div>
-    <div class="form-group">
-      <label class="sr-only" for="inputAmount">Amount (in Euros)</label>
-      <div class="input-group">
-        <div class="input-group-addon">€</div>
-        <input type="number" step="any" class="form-control" id="inputAmount" placeholder="Amount">
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="sr-only" for="inputCategory">Category</label>
-      <select class="form-control" id="inputCategory">
-        {{#each categories}}
-          <option value="{{ _id }}">{{ name }}</option>
-        {{/each}}
-      </select>
-    </div>
-    <button type="submit" class="btn btn-primary" id="add_expense">Add Expense</button>
-  </form>
 </template>
