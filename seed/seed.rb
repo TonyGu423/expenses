@@ -46,7 +46,7 @@ def start_faker_insert
       createdAt: Faker::Date.between(80.days.ago, Date.today),
       amount: Faker::Number.decimal(2),
       categories: Category.all.sample._id,
-      owner: User.where(username: 'michi').first.id
+      owner: User.first.id
     )
   end
 end
