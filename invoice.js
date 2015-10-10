@@ -4,9 +4,13 @@ if (Meteor.isClient) {
     passwordSignupFields: "USERNAME_ONLY",
   });
 
-  Meteor.subscribe("allExpenses");
+  // Meteor.subscribe("allExpenses");
   Meteor.subscribe("allCategories");
   Meteor.subscribe("allUsers");
+
+  Meteor.Spinner.options = {
+      scale: 2.5
+  };
 
   Template.registerHelper("categoriesOptions", function() {
     array = []
@@ -16,7 +20,7 @@ if (Meteor.isClient) {
     return array;
   });
 
-  Template.invoiceTable.helpers({
+  Template.showExpenses.helpers({
     expenses: function() {
       return Expenses.find({}, {sort: {createdAt: -1}});
     },
@@ -51,7 +55,7 @@ if (Meteor.isClient) {
     }
   });
 
-  Template.invoiceTable.events({
+  Template.showExpenses.events({
     "click #deleteExpense": function() {
       Meteor.call("deleteExpense", this._id);
     }
