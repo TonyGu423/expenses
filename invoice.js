@@ -60,6 +60,32 @@ if (Meteor.isClient) {
       Meteor.call("deleteExpense", this._id);
     }
   });
+
+  Template.charts.onRendered(function() {
+    var pieData = {};
+    Categories.find().fetch().forEach(function(transaction){
+      var c = transaction.name;
+      // using userderscore.js functions
+      var total = _.reduce(_.map(Expenses.find({categories: transaction._id}).fetch(),
+        function(doc) {
+          //map
+          return doc.amount
+        }),
+        function(memo, num){
+          //reduce
+          return memo + num;
+      });
+      pieData[c] = total;
+    });
+
+    var data = {
+      // A labels array that can contain any sort of values
+      labels: _.keys(pieData),
+      // Our series array that contains series objects or in this case series data arrays
+      series: _.values(pieData)
+    };
+    new Chartist.Pie('.ct-chart', data);
+  });
 }
 
 if (Meteor.isServer) {
