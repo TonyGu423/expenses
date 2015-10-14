@@ -109,14 +109,29 @@ if (Meteor.isServer) {
   });
 
   Meteor.publish("allExpenses", function() {
+    // only show entires, if a user is logged in
+    if (!this.userId) {
+      this.ready();
+      return;
+    }
     return Expenses.find();
   });
 
   Meteor.publish("allCategories", function() {
+    // only show entires, if a user is logged in
+    if (!this.userId) {
+      this.ready();
+      return;
+    }
     return Categories.find();
   });
 
   Meteor.publish('allUsers', function() {
+    // only show entires, if a user is logged in
+    if (!this.userId) {
+      this.ready();
+      return;
+    }
     return Meteor.users.find();
   });
 
